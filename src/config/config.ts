@@ -1,5 +1,5 @@
 import { config } from 'dotenv'
-import { DBConfig, Dialect } from './types/dbConfig'
+import { Dialect } from './types/dbConfig';
 config()
 
 //config for server port
@@ -8,7 +8,7 @@ export const envConfig = {
 }
 
 //config for database
-export const dbConfig: DBConfig = {
+export const dbConfig = {
   db: process.env.DB_NAME || '',
   username: process.env.DB_USERNAME || '',
   password: process.env.DB_PASSWORD || '',

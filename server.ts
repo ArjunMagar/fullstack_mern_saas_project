@@ -2,7 +2,6 @@ import app from "./src/app";
 import { envConfig } from "./src/config/config";
 
 
-
 //database connection 
 import "./src/database/connection";
 
