@@ -17,7 +17,7 @@ const sequelize = new Sequelize({
         idle: dbConfig.pool.idle,
         acquire: dbConfig.pool.acquire
     },
-
+    // logging: false, //turns off all SQL logging
 })
 
 sequelize.authenticate().then(() => {

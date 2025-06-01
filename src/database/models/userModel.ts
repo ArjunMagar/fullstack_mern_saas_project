@@ -15,23 +15,29 @@ class User extends Model {
     declare id:string
 
     @Column({
-        type: DataType.STRING
+        type: DataType.STRING,
+        allowNull: false
     })
     declare username: string
 
 
     @Column({
-        type: DataType.STRING
+        type: DataType.STRING,
+        allowNull: false
     })
     declare password: string
 
     @Column({
         type:DataType.STRING,
+        allowNull: false,
+        unique: true
     })
     declare email:string
     
     @Column({
         type:DataType.ENUM('teacher','institute','super-admin','student'),
+        allowNull: false,
+        defaultValue:'student'
     })
     declare role:string
 
