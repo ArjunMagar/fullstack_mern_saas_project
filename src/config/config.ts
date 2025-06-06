@@ -7,7 +7,11 @@ config()
 export const envConfig= {
   jwtSecretKey: process.env.JWT_SECRET_KEY as string,     // type: string
   jwtExpiresIn: process.env.JWT_EXPIRES_IN as ms.StringValue,     // type: stringValue like '20d'
-  portNumber: Number(process.env.PORT),    
+  portNumber: Number(process.env.PORT),  
+  clientID:process.env.GOOGLE_CLIENT_ID as string,
+  clientSecret:process.env.GOOGLE_CLIENT_SECRET as string,
+  callbackURL:process.env.CALLBACK_URL  as string
+
 };
 
 //config for database
