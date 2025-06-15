@@ -54,32 +54,31 @@ class googleAuthController {
     }
   
     // Callback route Google redirects to after login
-    static callback(req:Request, res:Response, next:NextFunction) {
+    static callback(req:Request, res:Response){
       passport.authenticate('google', { session: false }, (err, result) => {
         if (err || !result) {
           return res.redirect('/auth/google/failure'); // Error case
         }
   
         const {token,user} = result;
-  
-        // Redirect user to frontend with JWT token as query parameter
+        
+    // Option A: Return JSON
        return res.status(200).json({
             message: "Google login successful",
-            user,
-            token
+            data : {user:{
+              userid:user.id,
+              username:user.username,
+              email:user.email,
+              role:user.role
+            },
+            token}
+    // Option B: Redirect and pass token to frontend via param
+    // return res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
+          
         });
-      })(req, res, next);
+      })(req,res);
     }
-  
-    // // Optional success route (not used in this flow)
-    // static success(req, res) {
-    //   res.send('Google login successful');
-    // }
-  
-    // // Failure route
-    // static failure(req, res) {
-    //   res.status(401).send('Google login failed');
-    // }
+
   }
   
   export default googleAuthController;
