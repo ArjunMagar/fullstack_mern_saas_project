@@ -28,7 +28,7 @@ sequelize.authenticate().then(() => {
     })
 
 //migrate garnu parxa / push garnu parxa
-sequelize.sync({ force: false }).then(() => {
+sequelize.sync({ force: false}).then(() => {
     console.log("migrated successfully new changes")
 })
 
