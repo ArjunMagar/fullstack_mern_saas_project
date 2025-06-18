@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import sequelize from "../../database/connection";
 import generateRandomInstituteNumber from "../../services/generateRandomInstituteNumber";
 import { AuthRequest } from "../../middleware/isAuthenticated";
+import User from "../../database/models/userModel";
 
 class InstituteController {
   static async createInstitute(req: AuthRequest, res: Response): Promise<void> {
+    const userId = req.user?.id;
     if (!req.body) {
       res.status(409).json({
         message: "No data received",
@@ -40,6 +42,26 @@ class InstituteController {
     }
     const instituteNumber = generateRandomInstituteNumber();
 
+    // To create userInstitutes table
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS userInstitutes(
+        id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+        userId CHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+        instituteNumber INT NOT NULL,  
+        FOREIGN KEY (userId) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+    )`)
+
+    // To check for creating institute by one user
+    const [data] = await sequelize.query(`SELECT * FROM userInstitutes WHERE userId = ?`, {
+      replacements: [userId]
+    })
+    
+    if (data.length >= 3) {
+      res.status(404).json({
+        message: "Limit user to a maximum of 3 associated institutes"
+      })
+      return;
+    }
+    //To create institute query
     await sequelize.query(`CREATE TABLE IF NOT EXISTS institute_${instituteNumber} (
             id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
             instituteName VARCHAR(255) NOT NULL,
@@ -66,22 +88,30 @@ class InstituteController {
         ],
       }
     );
-    const userId = req.user?.id;
-    const sanitizedUserId = userId?.replace(/-/g, '_'); // Replace "-" with "_"
 
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS userInstitutes_${sanitizedUserId}(
-        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, 
-        userId CHAR(36) NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-        instituteNumber  INT NOT NULL REFERENCES institute_${instituteNumber}(id) ON UPDATE CASCADE ON DELETE CASCADE
-    )`)
-      
-    await sequelize.query(`INSERT INTO userInstitutes_${sanitizedUserId} (userId,instituteNumber)VALUES(?,?)`,{
-        replacements : [userId,instituteNumber]
+    // Insert data of userInstitute History tracking 
+    await sequelize.query(`INSERT INTO userInstitutes(userId,instituteNumber)VALUES(?,?)`, {
+      replacements: [userId, instituteNumber]
     })
+    // current instituteNumber tracking
+    if (req.user) {
+      const user = await User.findByPk(req.user.id)
+      if (user) {
+        await User.update({
+          currentInstituteNumber: instituteNumber
+        }, {
+          where: {
+            id: req.user.id
+          }
+        })
+      }
+
+    }
 
     res.status(200).json({
       message: "Institute created!",
     });
+
   }
 }
 
