@@ -18,6 +18,7 @@
     "mysql2": "^3.14.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "sequelize": "^6.37.7",
     "sequelize-typescript": "^2.1.6"
   },
   "devDependencies": {
