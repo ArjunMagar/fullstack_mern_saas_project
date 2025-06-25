@@ -1,44 +1,33 @@
-import { Request, response, Response } from "express";
+import { Response } from "express";
 import sequelize from "../../database/connection";
 import generateRandomInstituteNumber from "../../services/generateRandomInstituteNumber";
-import { AuthRequest } from "../../middleware/isAuthenticated";
 import User from "../../database/models/userModel";
 import { QueryTypes } from "sequelize";
+import { IExtendedRequest } from "../../middleware/type";
 
 class InstituteController {
-  static async createInstitute(req: AuthRequest, res: Response): Promise<void> {
-
-    // check validation 
+  static async createInstitute(req: IExtendedRequest, res: Response): Promise<void> {
     const userId = req.user?.id;
+    // Validate input
     if (!req.body) {
       res.status(409).json({
         message: "No data received",
       });
       return;
     }
-    // check validation
-    const {
-      instituteName,
-      instituteEmail,
-      institutePhoneNumber,
-      instituteAddress,
-    } = req.body;
+    // Validate input
+    const { instituteName, instituteEmail, institutePhoneNumber, instituteAddress } = req.body;
     const instituteVatNo = req.body.instituteVatNo || null;
     const institutePanNo = req.body.institutePanNo || null;
-    // check validation 
-    if (
-      !instituteName ||
-      !instituteEmail ||
-      !institutePhoneNumber ||
-      !instituteAddress
-    ) {
+    // Validate input
+    if (!instituteName || !instituteEmail || !institutePhoneNumber || !instituteAddress) {
       res.status(400).json({
         message:
           "Please provide instituteName, instituteEmail, institutePhoneNumber, instituteAddress ",
       });
       return;
     }
-    // check validation
+    // Validate input
     if (!instituteVatNo && !institutePanNo) {
       res.status(400).json({
         message: "Please provider instituteVatNo or institutePanNo",
@@ -55,10 +44,10 @@ class InstituteController {
         FOREIGN KEY (userId) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
     )`)
 
-    // To check allow that how many times for creating institute by one user
+    // To check allow that how many times for creating institute by one user as institute
     const data = await sequelize.query(`SELECT * FROM userInstitutes WHERE userId = ?`, {
       replacements: [userId],
-      type : QueryTypes.SELECT
+      type: QueryTypes.SELECT
     })
     if (data.length >= 1) {
       res.status(404).json({
@@ -66,10 +55,10 @@ class InstituteController {
       })
       return;
     }
-    //Transaction applied
+    // Use Transaction 
     const transaction = await sequelize.transaction()
     try {
-      //To create institute query
+      //To create instituteTable
       await sequelize.query(`CREATE TABLE IF NOT EXISTS institute_${instituteNumber} (
             id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
             instituteName VARCHAR(255) NOT NULL,
@@ -117,18 +106,32 @@ class InstituteController {
 
       //To create courseTable
       await sequelize.query(`CREATE TABLE IF NOT EXISTS course_${instituteNumber} (
-      id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-      courseName VARCHAR(255) NOT NULL,
-      coursePrice VARCHAR(255) NOT NULL
+      id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+      courseName VARCHAR(255) NOT NULL UNIQUE,
+      coursePrice VARCHAR(255) NOT NULL,
+      courseDuration VARCHAR(100) NOT NULL,
+      courseDescription TEXT,
+      courseLevel ENUM('beginner','intermediate','advance') NOT NULL,
+      courseThumbnail VARCHAR(200),
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )`)
+      //To create categoryTable
+      await sequelize.query(`CREATE TABLE IF NOT EXISTS category_${instituteNumber}(
+        id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        categoryName VARCHAR(100) NOT NULL,
+        categoryDescription TEXT,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )`)
 
-      // Insert data in userInstitute History tracking 
+      // Insert data in userInstituteTable for History tracking 
       await sequelize.query(`INSERT INTO userInstitutes(userId,instituteNumber)VALUES(?,?)`, {
         replacements: [userId, instituteNumber],
         transaction: transaction
       })
 
-      // Current instituteNumber tracking
+      // Insert currentInstituteNumber data in userTable for tracking all related currentTables of the institute.
       if (req.user) {
         const user = await User.findByPk(req.user.id)
         if (user) {
@@ -158,6 +161,8 @@ class InstituteController {
       await sequelize.query(`DROP TABLE IF EXISTS teacher_${instituteNumber};`)
       await sequelize.query(`DROP TABLE IF EXISTS student_${instituteNumber};`)
       await sequelize.query(`DROP TABLE IF EXISTS course_${instituteNumber};`)
+      await sequelize.query(`DROP TABLE IF EXISTS category_${instituteNumber};`)
+
       res.status(500).json({
         message: "Institute create failed...!, Try again...!"
       })

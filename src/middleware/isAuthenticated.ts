@@ -1,34 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { envConfig } from "../config/config";
 import User from "../database/models/userModel";
+import { IExtendedRequest, Role } from "./type";
 
-export interface AuthRequest extends Request {
-    user?: {
-        id?: string,
-        username?: string,
-        email?: string,
-        role?: string,
-        password?: string,
-        currentInstituteNumber?:string
-
-
-    }
-}
-export enum Role {
-    Super_Admin = 'superAdmin',
-    Institute = 'institute',
-    Teacher = 'teacher',
-    Student = 'student'
-}
 
 class AuthMiddleware {
 
-    async isAuthenticated(
-        req: AuthRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
+    async isAuthenticated(req: IExtendedRequest, res: Response, next: NextFunction): Promise<void> {
         //get token from user
         const token = req.headers.authorization;
         if (!token || token === undefined || token === "" || token === null) {
@@ -47,7 +26,9 @@ class AuthMiddleware {
             } else {
                 //check if that decoded object id user exist or not
                 try {
-                    const userData = await User.findByPk(decoded.userId);
+                    const userData = await User.findByPk(decoded.userId, {
+                        attributes: ['id', 'role', 'currentInstituteNumber']
+                    });
                     if (!userData) {
                         res.status(404).json({
                             message: "No user with that token"
@@ -66,7 +47,7 @@ class AuthMiddleware {
     }
 
     restrictTo(...roles: Role[]) {
-        return (req: AuthRequest, res: Response, next: NextFunction) => {
+        return (req: IExtendedRequest, res: Response, next: NextFunction) => {
             let userRole = req.user?.role as Role
             if (!roles.includes(userRole)) {
                 res.status(403).json({

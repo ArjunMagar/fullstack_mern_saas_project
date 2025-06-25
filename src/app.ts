@@ -4,6 +4,7 @@ import passport from 'passport'
 import googleAuthController from "./controller/global/googleAuthController"
 const app = express()
 import instituteRoute from "./routes/institute/instituteRoute"
+import courseRoute from "./routes/institute/course/courseRoute"
 
 app.use(express.json())
 
@@ -15,4 +16,5 @@ googleAuthController.initGoogleStrategy();
 //localhost:3000/api/auth
 app.use("/api/auth",authRoute)
 app.use("/api/institute",instituteRoute)
+app.use("/api/institute/course",courseRoute)
 export default app
