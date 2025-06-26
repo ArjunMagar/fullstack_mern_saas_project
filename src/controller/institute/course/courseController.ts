@@ -62,7 +62,7 @@ class CourseController {
     }
 
     async getCourses(req: IExtendedRequest, res: Response) {
-        const { instituteNumber } = req.query
+        const instituteNumber = req.user?.currentInstituteNumber
         const courses = await sequelize.query(`SELECT * FROM course_${instituteNumber}`, {
             type: QueryTypes.SELECT
         })
@@ -74,7 +74,7 @@ class CourseController {
     }
 
     async getCourse(req: IExtendedRequest, res: Response) {
-        const { instituteNumber } = req.query
+        const instituteNumber  = req.user?.currentInstituteNumber
         const courseId = req.params.id
         const course = await sequelize.query(`SELECT * FROM course_${instituteNumber} WHERE id = ?`, {
             replacements: [courseId],
