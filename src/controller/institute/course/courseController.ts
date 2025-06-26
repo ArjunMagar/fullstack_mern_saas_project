@@ -17,8 +17,8 @@ class CourseController {
             });
             return;
         }
-        const { courseName, coursePrice, courseDescription, courseDuration, courseLevel } = req.body
-        if (!courseName || !coursePrice || !courseDescription || !courseDuration || !courseLevel) {
+        const { courseName, coursePrice, courseDescription, courseDuration, courseLevel, categoryId } = req.body
+        if (!courseName || !coursePrice || !courseDescription || !courseDuration || !courseLevel || !categoryId) {
             res.status(400).json({
                 message: "Please ! provide courseName,coursePrice,courseDescription,courseDuration,courseLevel"
             })
@@ -27,8 +27,8 @@ class CourseController {
         const courseThumbnail = req.file ? req.file.path : null
 
         await sequelize.query(`INSERT INTO course_${instituteNumber}(courseName,coursePrice,
-        courseDescription,courseDuration,courseLevel,courseThumbnail) VALUES (?,?,?,?,?,?)`, {
-            replacements: [courseName, coursePrice, courseDescription, courseDuration, courseLevel, courseThumbnail],
+        courseDescription,courseDuration,courseLevel,courseThumbnail,categoryId) VALUES (?,?,?,?,?,?,?)`, {
+            replacements: [courseName, coursePrice, courseDescription, courseDuration, courseLevel, courseThumbnail, categoryId],
             type: QueryTypes.INSERT
         })
 
@@ -63,9 +63,11 @@ class CourseController {
 
     async getCourses(req: IExtendedRequest, res: Response) {
         const instituteNumber = req.user?.currentInstituteNumber
-        const courses = await sequelize.query(`SELECT * FROM course_${instituteNumber}`, {
-            type: QueryTypes.SELECT
-        })
+        const courses = await sequelize.query(`SELECT course.id AS courseId,category.id AS categoryId,course.*,category.* FROM 
+            course_${instituteNumber} as course JOIN category_${instituteNumber} as category ON course.categoryId = category.id`,
+            {
+                type: QueryTypes.SELECT
+            })
 
         res.status(200).json({
             message: "Courses fetched",
@@ -74,12 +76,14 @@ class CourseController {
     }
 
     async getCourse(req: IExtendedRequest, res: Response) {
-        const instituteNumber  = req.user?.currentInstituteNumber
+        const instituteNumber = req.user?.currentInstituteNumber
         const courseId = req.params.id
-        const course = await sequelize.query(`SELECT * FROM course_${instituteNumber} WHERE id = ?`, {
-            replacements: [courseId],
-            type: QueryTypes.SELECT
-        })
+        const course = await sequelize.query(`SELECT course.id as courseId,category.id as categoryId,course.*,category.* FROM
+             course_${instituteNumber} as course JOIN category_${instituteNumber} as category ON course.categoryId = category.id WHERE course.id = ?`,
+            {
+                replacements: [courseId],
+                type: QueryTypes.SELECT
+            })
         res.status(200).json({
             message: "Course fetched",
             data: course

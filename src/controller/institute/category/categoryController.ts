@@ -16,7 +16,7 @@ class CategoryController {
             })
         }
         await sequelize.query(`INSERT INTO category_${instituteNumber}(categoryName,categoryDescription)VALUES(?,?)`, {
-            replacements: [categoryName, categoryDescription]
+            replacements: [categoryName,categoryDescription]
         })
         res.status(200).json({
             message: "Category added successfully",

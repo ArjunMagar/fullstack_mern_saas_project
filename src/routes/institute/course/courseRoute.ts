@@ -27,8 +27,8 @@ const upload = multer({
 
 
 router.route('/').post(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), upload.single('courseImage'), asyncErrorHandler(courseController.createCourse))
-    .get(asyncErrorHandler(courseController.getCourses))
-router.route('/:id').get(asyncErrorHandler(courseController.getCourse))
+    .get(isAuthenticated.isAuthenticated,asyncErrorHandler(courseController.getCourses))
+router.route('/:id').get(isAuthenticated.isAuthenticated,asyncErrorHandler(courseController.getCourse))
     .delete(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(courseController.deleteCourse))
 
 export default router
