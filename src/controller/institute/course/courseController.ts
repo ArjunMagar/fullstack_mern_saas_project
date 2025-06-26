@@ -38,7 +38,7 @@ class CourseController {
     }
 
     async deleteCourse(req: IExtendedRequest, res: Response): Promise<void> {
-        const { instituteNumber } = req.query
+        const instituteNumber = req.user?.currentInstituteNumber
         const courseId = req.params.id
 
         // first check if course exists or not, if exists --> delete else not delete
