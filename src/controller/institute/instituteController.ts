@@ -70,9 +70,9 @@ class InstituteController {
             institutePanNo VARCHAR(255),
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )`,{
-              transaction:transaction
-            });
+            )`, {
+        transaction: transaction
+      });
 
       // To insert datas in instituteTable
       await sequelize.query(`INSERT INTO institute_${instituteNumber} (instituteName,
@@ -92,23 +92,30 @@ class InstituteController {
 
       //To create teacherTable
       await sequelize.query(`CREATE TABLE IF NOT EXISTS teacher_${instituteNumber} (
-           id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+           id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
            teacherName VARCHAR(255) NOT NULL,
            teacherEmail VARCHAR(255) NOT NULL UNIQUE,
-           teacherPhoneNumber VARCHAR(255) NOT NULL UNIQUE
-           )`,{
-            transaction:transaction
-           })
+           teacherPhoneNumber VARCHAR(255) NOT NULL UNIQUE,
+           teacherExpertise VARCHAR(255),
+           joinedDate DATE,
+           salary VARCHAR(100),
+           teacherPhoto VARCHAR(255),
+           teacherPassword VARCHAR(255),
+           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+           )`, {
+        transaction: transaction
+      })
 
       //To create studentTable
       await sequelize.query(`CREATE TABLE IF NOT EXISTS student_${instituteNumber} (
-           id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+           id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
            studentName VARCHAR(255) NOT NULL,
            studentEmail VARCHAR(255) NOT NULL,
            studentPhoneNumber VARCHAR(255) NOT NULL
-          )`,{
-            transaction:transaction
-          })
+          )`, {
+        transaction: transaction
+      })
       //To create categoryTable
       await sequelize.query(`CREATE TABLE IF NOT EXISTS category_${instituteNumber}(
           id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
@@ -116,9 +123,9 @@ class InstituteController {
           categoryDescription TEXT,
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )`,{
-          transaction:transaction
-        })
+        )`, {
+        transaction: transaction
+      })
 
       // Insert data in categoryTable 
       categories.forEach(async function (category) {
@@ -138,13 +145,15 @@ class InstituteController {
           courseDescription TEXT,
           courseLevel ENUM('beginner','intermediate','advance') NOT NULL,
           courseThumbnail VARCHAR(200),
-          categoryId char(36) NOT NULL,
+          categoryId CHAR(36) NOT NULL,
+          teacherId CHAR(36),
           FOREIGN KEY (categoryId) REFERENCES category_${instituteNumber}(id) ON UPDATE CASCADE ON DELETE CASCADE,
+          FOREIGN KEY (teacherId) REFERENCES teacher_${instituteNumber}(id) ON UPDATE CASCADE ON DELETE CASCADE,
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-          )`,{
-            transaction:transaction
-          })
+          )`, {
+        transaction: transaction
+      })
 
 
       // Insert data in userInstituteTable for History tracking 
