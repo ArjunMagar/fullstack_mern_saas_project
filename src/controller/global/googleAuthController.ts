@@ -34,7 +34,7 @@ class googleAuthController {
           }
   
           // Step 3: Create JWT token for logged-in user
-          const token = generateToken(user.id)
+          const token = generateToken({id:user.id})
         
   
           // Step 4: Pass user and token to the next handler

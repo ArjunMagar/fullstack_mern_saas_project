@@ -1,11 +1,15 @@
 import jwt from 'jsonwebtoken'
 import { envConfig } from '../config/config'
-const generateToken = (userId : string)=>{
+
+const generateToken = (data: {
+    id: string,
+    instituteNumber?: string
+}) => {
     // token generate (jwt)
-    const token = jwt.sign({userId : userId},envConfig.jwtSecretKey,{
-        expiresIn : envConfig.jwtExpiresIn
+    const token = jwt.sign(data, envConfig.jwtSecretKey, {
+        expiresIn: envConfig.jwtExpiresIn
     })
-    return token 
+    return token
 }
 
 export default generateToken

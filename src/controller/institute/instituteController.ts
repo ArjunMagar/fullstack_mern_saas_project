@@ -68,6 +68,8 @@ class InstituteController {
             instituteAddress VARCHAR(255) NOT NULL,
             instituteVatNo VARCHAR(255),
             institutePanNo VARCHAR(255),
+            userId CHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+            FOREIGN KEY (userId) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )`, {
@@ -76,13 +78,14 @@ class InstituteController {
 
       // To insert datas in instituteTable
       await sequelize.query(`INSERT INTO institute_${instituteNumber} (instituteName,
-           instituteEmail,institutePhoneNumber,instituteAddress,instituteVatNo,institutePanNo) VALUES (?,?,?,?,?,?)`,
+           instituteEmail,institutePhoneNumber,instituteAddress,userId,instituteVatNo,institutePanNo) VALUES (?,?,?,?,?,?,?)`,
         {
           replacements: [
             instituteName,
             instituteEmail,
             institutePhoneNumber,
             instituteAddress,
+            userId,
             instituteVatNo,
             institutePanNo,
           ],
@@ -200,6 +203,34 @@ class InstituteController {
     }
 
   }
+
+  static async getInstitutes(req: IExtendedRequest, res: Response) {
+    try {
+      const institutes = await sequelize.query(
+        `SELECT instituteNumber FROM userInstitutes`,
+        { type: QueryTypes.SELECT }
+      );
+
+      const AllInstitute = await Promise.all(
+        institutes.map(async (institute: any) => {
+          const [data] = await sequelize.query(
+            `SELECT * FROM institute_${institute.instituteNumber}`,
+            { type: QueryTypes.SELECT }
+          );
+          return data;
+        })
+      );
+
+      res.status(200).json({
+        message: "institutes fetched",
+        data: AllInstitute
+      });
+    } catch (error) {
+      console.error("Error fetching institutes:", error);
+      res.status(500).json({ message: "Something went wrong", error });
+    }
+  }
+
 }
 
 export default InstituteController;

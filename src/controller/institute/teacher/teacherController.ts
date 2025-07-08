@@ -3,6 +3,7 @@ import sequelize from "../../../database/connection";
 import { IExtendedRequest } from "../../../middleware/type";
 import { Response } from 'express'
 import generateRandomPassword from "../../../services/generateRandomPassword";
+import sendMail from "../../../services/sendMail";
 
 
 class TeacherController {
@@ -42,17 +43,24 @@ class TeacherController {
             })
 
             // console.log(updatedData[1],"updateDAta")
-            if(updatedData[1] === 0){
+            if (updatedData[1] === 0) {
                 await transaction.rollback();
                 res.status(404).json({
-                    message:"No course related with the teacher, Please! check"
+                    message: "No course related with the teacher, Please! check"
                 })
                 return
             }
-
             //send mail function goes here
+            const mailInformation = {
+                to: teacherEmail,
+                subject: "welcome to our saas mern project",
+                text: `welcom xa hai, Email: ${teacherEmail}, Password: ${data.plainVersion}, Your InstituteNumber: ${instituteNumber}`
+            }
+            await sendMail(mailInformation)
+
             await transaction.commit();
             console.log("unmanaged transcation has been done")
+
             res.status(200).json({
                 message: "teacher created"
             })
@@ -67,23 +75,23 @@ class TeacherController {
 
     }
 
-    async getTeachers(req:IExtendedRequest,res:Response){
+    async getTeachers(req: IExtendedRequest, res: Response) {
         const instituteNumber = req.user?.currentInstituteNumber
-        const teachers = await sequelize.query(`SELECT * FROM teacher_${instituteNumber}`,{
-            type:QueryTypes.SELECT
+        const teachers = await sequelize.query(`SELECT * FROM teacher_${instituteNumber}`, {
+            type: QueryTypes.SELECT
         })
         res.status(200).json({
             message: "teachers fetched",
-            data : teachers
+            data: teachers
         })
     }
 
-    async deleteTeacher(req:IExtendedRequest,res:Response){
+    async deleteTeacher(req: IExtendedRequest, res: Response) {
         const instituteNumber = req.user?.currentInstituteNumber
         const id = req.params.id
-        await sequelize.query(`DELETE FROM teacher_${instituteNumber} WHERE id=?`,{
-            type:QueryTypes.DELETE,
-            replacements:[id]
+        await sequelize.query(`DELETE FROM teacher_${instituteNumber} WHERE id=?`, {
+            type: QueryTypes.DELETE,
+            replacements: [id]
         })
         res.status(200).json({
             message: "teacher deleted successfully"

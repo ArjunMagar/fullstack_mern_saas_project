@@ -24,9 +24,10 @@ class AuthMiddleware {
                     message: "Invalid Token",
                 });
             } else {
+                console.log(decoded,"Decodevalue..")
                 //check if that decoded object id user exist or not
                 try {
-                    const userData = await User.findByPk(decoded.userId, {
+                    const userData = await User.findByPk(decoded.id, {
                         attributes: ['id', 'role', 'currentInstituteNumber']
                     });
                     if (!userData) {

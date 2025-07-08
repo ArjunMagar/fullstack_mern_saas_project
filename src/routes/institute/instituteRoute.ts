@@ -8,6 +8,7 @@ import asyncErrorHandler from '../../services/asyncErrorHandler'
 const router:Router = express.Router()
 
 router.route("/").post(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),asyncErrorHandler(InstituteController.createInstitute))
+.get(InstituteController.getInstitutes)
 
 
 export default router
