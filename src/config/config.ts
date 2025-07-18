@@ -10,7 +10,8 @@ export const envConfig= {
   portNumber: Number(process.env.PORT),  
   clientID:process.env.GOOGLE_CLIENT_ID as string,
   clientSecret:process.env.GOOGLE_CLIENT_SECRET as string,
-  callbackURL:process.env.CALLBACK_URL  as string
+  callbackURL:process.env.CALLBACK_URL  as string,
+  frontendURL:process.env.FRONTEND_URL as string
 
 };
 

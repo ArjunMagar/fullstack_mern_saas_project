@@ -3,7 +3,7 @@ import sequelize from "../../database/connection";
 import generateRandomInstituteNumber from "../../services/generateRandomInstituteNumber";
 import User from "../../database/models/userModel";
 import { QueryTypes } from "sequelize";
-import { IExtendedRequest } from "../../middleware/type";
+import { IExtendedRequest, Role } from "../../middleware/type";
 import categories from "../../seed";
 
 class InstituteController {
@@ -171,6 +171,7 @@ class InstituteController {
         if (user) {
           await User.update({
             currentInstituteNumber: instituteNumber,
+            role: Role.Institute
 
           }, {
             where: {

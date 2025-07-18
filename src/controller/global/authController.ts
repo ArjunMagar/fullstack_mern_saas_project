@@ -81,10 +81,12 @@ class AuthController {
           });
         } else {
           //if password is matched --> token generate(jwt)
-          const token = generateToken({id:user.id});
+          const token = generateToken({ id: user.id, name: user.username, role: user.role });
           res.status(200).json({
             message: "logged in success",
             token,
+            data:{ id: user.id, name: user.username, role: user.role }
+
           });
         }
       }

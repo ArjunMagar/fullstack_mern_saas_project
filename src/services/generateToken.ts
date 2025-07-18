@@ -3,6 +3,8 @@ import { envConfig } from '../config/config'
 
 const generateToken = (data: {
     id: string,
+    name:string,
+    role:string,
     instituteNumber?: string
 }) => {
     // token generate (jwt)

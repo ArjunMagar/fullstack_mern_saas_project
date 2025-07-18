@@ -7,7 +7,9 @@ import generateToken from "../../services/generateToken";
 
 interface ITeacherData {
     id: string
-    teacherPassword: string
+    teacherPassword: string,
+    role:string,
+    name:string
 }
 
 
@@ -41,7 +43,7 @@ class TeacherController {
 
         } else {
             // token generation
-            const token = generateToken({id:teacherData[0].id,instituteNumber:teacherInstituteNumber})
+            const token = generateToken({id:teacherData[0].id,instituteNumber:teacherInstituteNumber,name:teacherData[0].name,role:teacherData[0].role})
             res.status(200).json({
                 message: "Teacher logged in",
                 token
