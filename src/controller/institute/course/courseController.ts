@@ -31,9 +31,15 @@ class CourseController {
             replacements: [courseName, coursePrice, courseDescription, courseDuration, courseLevel, courseThumbnail, categoryId],
             type: QueryTypes.INSERT
         })
-
+        const [newCourse] = await sequelize.query(`SELECT course.id as courseId,category.id as categoryId,course.*,category.* FROM
+             course_${instituteNumber} as course JOIN category_${instituteNumber} as category ON course.categoryId = category.id WHERE course.courseName = ?`,
+            {
+                replacements: [courseName],
+                type: QueryTypes.SELECT
+            })
         res.status(201).json({
-            message: "course created successfully"
+            message: "Course created successfully",
+            data: newCourse
         })
     }
 

@@ -16,10 +16,15 @@ class CategoryController {
             })
         }
         await sequelize.query(`INSERT INTO category_${instituteNumber}(categoryName,categoryDescription)VALUES(?,?)`, {
-            replacements: [categoryName,categoryDescription]
+            replacements: [categoryName, categoryDescription]
         })
-        res.status(200).json({
+        const [newCategory] = await sequelize.query(`SELECT * FROM category_${instituteNumber} WHERE categoryName =? && categoryDescription =?`, {
+            type: QueryTypes.SELECT,
+            replacements: [categoryName, categoryDescription]
+        })
+        res.status(201).json({
             message: "Category added successfully",
+            data: newCategory
 
         })
     }
