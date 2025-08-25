@@ -158,6 +158,35 @@ class InstituteController {
         transaction: transaction
       })
 
+      //create teacher-course-chapter table
+      await sequelize.query(`CREATE TABLE IF NOT EXISTS course_chapter_${instituteNumber}(
+          id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+          chapterName VARCHAR(255) NOT NULL,
+          chapterDuration VARCHAR(100) NOT NULL,
+          chapterLevel ENUM('beginner','intermediate','advance') NOT NULL,
+          courseId CHAR(36),
+          FOREIGN KEY (courseId) REFERENCES course_${instituteNumber}(id) ON UPDATE CASCADE ON DELETE CASCADE,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          )`, {
+        transaction: transaction
+      })
+
+      //create chapterLession table
+      await sequelize.query(`CREATE TABLE IF NOT EXISTS chapter_lesson_${instituteNumber}(
+          id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+          lessonName VARCHAR(255) NOT NULL,
+          lessonDescription TEXT,
+          lessonVideoUrl VARCHAR(200) NOT NULL,
+          lessonThumbnailUrl VARCHAR(200) NOT NULL,
+          chapterId CHAR(36),
+          FOREIGN KEY (chapterId) REFERENCES course_chapter_${instituteNumber}(id) ON UPDATE CASCADE ON DELETE CASCADE,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        
+        )`,{
+          transaction:transaction
+        })
 
       // Insert data in userInstituteTable for History tracking 
       await sequelize.query(`INSERT INTO userInstitutes(userId,instituteNumber)VALUES(?,?)`, {
