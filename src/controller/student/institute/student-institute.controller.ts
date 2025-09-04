@@ -28,10 +28,11 @@ class StudentInstitute {
     async instituteCourseListForStudent(req: Request, res: Response) {
 
         const { instituteId } = req.params
-        const datas = await sequelize.query(`SELECT * FROM course_${instituteId} as course JOIN category_${instituteId} as category ON
-             course.categoryId = category.id`, {
-            type: QueryTypes.SELECT
-        })
+        const datas = await sequelize.query(`SELECT course.id AS courseId,category.id AS categoryId,course.*,category.* FROM 
+            course_${instituteId} as course JOIN category_${instituteId} as category ON course.categoryId = category.id`,
+            {
+                type: QueryTypes.SELECT
+            })
         if (datas.length === 0) {
             res.status(404).json({
                 message: "No courses found of that institute"

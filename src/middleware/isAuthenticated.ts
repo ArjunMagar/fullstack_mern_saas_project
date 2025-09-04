@@ -47,6 +47,18 @@ class AuthMiddleware {
         });
     }
 
+    changeUserIdForTableName(req: IExtendedRequest, res: Response, next: NextFunction) {
+        console.log(req.user, "Req user outside");
+
+        if (req.user && req.user.id) {
+            const newUserId = req.user.id.split("-").join("_");
+            req.user = { id: newUserId, role: req.user.role };
+            console.log(req.user, "RequserId");
+        }
+        
+        next();
+    }
+
     restrictTo(...roles: Role[]) {
         return (req: IExtendedRequest, res: Response, next: NextFunction) => {
             let userRole = req.user?.role as Role
