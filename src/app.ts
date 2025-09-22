@@ -12,13 +12,14 @@ import chapterRoute from "./routes/teacher/course/chapters/course-chapter-route"
 import lessonRoute from "./routes/teacher/course/lessons/chapter-lesson-route"
 import studentInstituteRoute from "./routes/student/institute/student-institute.route"
 import studentCartRoute from "./routes/student/cart/student-cart.route"
+import studentCourseOrderRoute from "./routes/student/order/student-order.route"
 import cors from 'cors'
 const app = express()
 app.use(cors({
     origin: "*"
 }))
 app.use(express.json())
-
+app.use(express.urlencoded({ extended: true }));
 // Middleware
 app.use(passport.initialize());
 // Initialize Google Strategy
@@ -41,6 +42,7 @@ app.use("/api/teacher/course",lessonRoute)
 //STUDENT ROUTE
 app.use("/api/student",studentInstituteRoute)
 app.use("/api/student",studentCartRoute)
+app.use("/api/student",studentCourseOrderRoute)
 
 
 export default app
