@@ -5,6 +5,8 @@ import User from "../../../database/models/userModel";
 import { QueryTypes } from "sequelize";
 import { KhaltiPayment } from "./paymentIntegration";
 import axios from "axios";
+import generateSha256Hash from "../../../services/generateSha256Hash";
+
 
 enum PaymenntMethod {
     COD = "cod",
@@ -61,7 +63,7 @@ class StudentCourseOrder {
         await sequelize.query(`CREATE TABLE IF NOT EXISTS student_payment_${userId}(
             id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
             paymentMethod ENUM('esewa','khalti','cod'),
-            pidx VARCHAR(26),
+            pidx VARCHAR(150),
             transaction_uuid VARCHAR(150),
             paymentStatus ENUM('paid','pending','unpaid') DEFAULT('unpaid'),
             totalAmount VARCHAR(10) NOT NULL,
@@ -98,10 +100,51 @@ class StudentCourseOrder {
         }
 
         if (paymentMethod === PaymenntMethod.ESEWA) {
-
             //esewa integration function call here
-        } else if (paymentMethod === PaymenntMethod.KHALTI) {
+            const paymentData = {
+                amount: amount,
+                tax_amount: 0,
+                product_service_charge: 0,
+                product_delivery_charge: 0,
+                product_code: process.env.ESEWA_PRODUCT_CODE,
+                total_amount: amount,
+                transaction_uuid: result.id,
+                success_url: "http://localhost:3000/",
+                failure_url: "http://localhost:3000/failure",
+                signed_field_names: "total_amount,transaction_uuid,product_code"
+            }
+            const data = `total_amount=${paymentData.total_amount},transaction_uuid=${paymentData.transaction_uuid},product_code=${paymentData.product_code}`
+            const esewaSecretKey = process.env.ESEWA_SECRET_KEY
+            const signature = generateSha256Hash(data, esewaSecretKey as string)
 
+            const response = await axios.post("https://rc-epay.esewa.com.np/api/epay/main/v2/form", {
+                ...paymentData, signature
+            }, {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            })
+
+            if (response.status === 200) {
+                const responseUrl = response.request.res.responseUrl
+                // console.log(responseUrl, "This is response url")
+                const bookingId = responseUrl.split('bookingId=')[1];
+                // console.log(bookingId,"Pidx/Transaction value")
+                await sequelize.query(`INSERT INTO student_payment_${userId}(paymentMethod,totalAmount,orderId,pidx) VALUES(?,?,?,?)`, {
+                    type: QueryTypes.INSERT,
+                    replacements: [paymentMethod, amount, result.id, bookingId]
+                })
+                res.status(200).json({
+                    message: "payment Initiated",
+                    data: responseUrl
+                })
+            } else {
+                res.status(500).json({
+                    message: "Something went wrong,try again !!"
+                })
+            }
+
+        } else if (paymentMethod === PaymenntMethod.KHALTI) {
             //khalti integration function call here
             const response = await KhaltiPayment({
                 amount: amount,
