@@ -6,7 +6,7 @@ import { QueryTypes } from "sequelize";
 import { KhaltiPayment } from "./paymentIntegration";
 import axios from "axios";
 import generateSha256Hash from "../../../services/generateSha256Hash";
-
+import base64 from "base-64"
 
 enum PaymenntMethod {
     COD = "cod",
@@ -108,7 +108,7 @@ class StudentCourseOrder {
                 product_delivery_charge: 0,
                 product_code: process.env.ESEWA_PRODUCT_CODE,
                 total_amount: amount,
-                transaction_uuid: result.id,
+                transaction_uuid: userId + "_" + result.id,
                 success_url: "http://localhost:3000/",
                 failure_url: "http://localhost:3000/failure",
                 signed_field_names: "total_amount,transaction_uuid,product_code"
@@ -130,12 +130,12 @@ class StudentCourseOrder {
                 // console.log(responseUrl, "This is response url")
                 const bookingId = responseUrl.split('bookingId=')[1];
                 // console.log(bookingId,"Pidx/Transaction value")
-                await sequelize.query(`INSERT INTO student_payment_${userId}(paymentMethod,totalAmount,orderId,pidx) VALUES(?,?,?,?)`, {
+                await sequelize.query(`INSERT INTO student_payment_${userId}(paymentMethod,totalAmount,orderId,pidx,transaction_uuid) VALUES(?,?,?,?,?)`, {
                     type: QueryTypes.INSERT,
-                    replacements: [paymentMethod, amount, result.id, bookingId]
+                    replacements: [paymentMethod, amount, result.id, bookingId, paymentData.transaction_uuid]
                 })
                 res.status(200).json({
-                    message: "payment Initiated",
+                    message: "Payment Initiated",
                     data: responseUrl
                 })
             } else {
@@ -160,7 +160,7 @@ class StudentCourseOrder {
                     replacements: [paymentMethod, amount, result.id, pidx]
                 })
                 res.status(200).json({
-                    message: "Takethis",
+                    message: "Take this or Payment is initiated",
                     data: response.data
                 })
             } else {
@@ -168,8 +168,6 @@ class StudentCourseOrder {
                     message: "Something went wrong,try again !!"
                 })
             }
-
-
 
         } else if (paymentMethod === PaymenntMethod.COD) {
 
@@ -205,14 +203,36 @@ class StudentCourseOrder {
                 message: "Payment not verified!!"
             })
         }
-
-
-
-
-
-
     }
 
+    async studentCourseEsewaPaymentVerification(req: IExtendedRequest, res: Response) {
+        const { encodedData } = req.body
+        const userId = req.user?.id
+        if (!encodedData) return res.status(400).json({
+            message: "Please provide data base64 for verification"
+        })
+        const result = base64.decode(encodedData)
+        const newresult: {
+            total_amount: string,
+            transaction_uuid: string
+        } = JSON.parse(result)
+
+        const response = await axios.get(`https://rc.esewa.com.np/api/epay/transaction/status/?product_code=EPAYTEST&total_amount=${newresult.total_amount}&transaction_uuid=${newresult.transaction_uuid}`)
+        // console.log(response,"ResponseTest")
+        if (response.status === 200 && response.data.status === "COMPLETE") {
+            await sequelize.query(`UPDATE student_payment_${userId} SET paymentStatus=? WHERE transaction_uuid=?`, {
+                type: QueryTypes.UPDATE,
+                replacements: ["paid", newresult.transaction_uuid]
+            })
+            res.status(200).json({
+                message: "Payment verified successfully"
+            })
+        } else {
+            res.status(500).json({
+                message: "Payment not verified !!"
+            })
+        }
+    }
 }
 
 export default new StudentCourseOrder

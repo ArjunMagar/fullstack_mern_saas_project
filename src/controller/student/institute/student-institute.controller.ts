@@ -13,7 +13,7 @@ class StudentInstitute {
         let allDatas = []
         for (let table of tables) {
             const instituteNumber = table.split("_")[1]
-            const [data] = await sequelize.query(`SELECT instituteName,institutePhoneNumber FROM ${table}`, {
+            const [data] = await sequelize.query(`SELECT id,instituteName,institutePhoneNumber FROM ${table}`, {
                 type: QueryTypes.SELECT
             })
             allDatas.push({ instituteNumber: instituteNumber, ...data })

@@ -9,7 +9,7 @@ interface ITeacherData {
     id: string
     teacherPassword: string,
     role:string,
-    name:string
+    teacherName:string
 }
 
 
@@ -34,6 +34,8 @@ class TeacherController {
             })
             return
         }
+        console.log(teacherData[0],"teacherPassword")
+        console.log(teacherPassword,"also teacher password")
         // check password now
         const isPasswordMatched = bcrypt.compareSync(teacherPassword, teacherData[0].teacherPassword)
         if (!isPasswordMatched) {
@@ -43,7 +45,7 @@ class TeacherController {
 
         } else {
             // token generation
-            const token = generateToken({id:teacherData[0].id,instituteNumber:teacherInstituteNumber,name:teacherData[0].name,role:teacherData[0].role})
+            const token = generateToken({id:teacherData[0].id,instituteNumber:teacherInstituteNumber,name:teacherData[0].teacherName,role:teacherData[0].role})
             res.status(200).json({
                 message: "Teacher logged in",
                 data:{

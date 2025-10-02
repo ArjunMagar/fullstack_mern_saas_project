@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import sequelize from "../../../database/connection";
-import { IExtendedRequest } from "../../../middleware/type";
+import { IExtendedRequest, Role } from "../../../middleware/type";
 import { Response } from 'express'
 import generateRandomPassword from "../../../services/generateRandomPassword";
 import sendMail from "../../../services/sendMail";
@@ -23,10 +23,10 @@ class TeacherController {
         // Use Transaction 
         const transaction = await sequelize.transaction()
         try {
-            await sequelize.query(`INSERT INTO teacher_${instituteNumber}(teacherName,teacherEmail,teacherPhoneNumber,
-            teacherExpertise,joinedDate,salary,teacherPhoto,teacherPassword) VALUES(?,?,?,?,?,?,?,?)`, {
+            await sequelize.query(`INSERT INTO teacher_${instituteNumber}(teacherName,teacherEmail,teacherPhoneNumber,role,
+            teacherExpertise,joinedDate,salary,teacherPhoto,teacherPassword) VALUES(?,?,?,?,?,?,?,?,?)`, {
                 type: QueryTypes.INSERT,
-                replacements: [teacherName, teacherEmail, teacherPhoneNumber, teacherExpertise, teacherJoinedDate, teacherSalary, teacherPhoto, data.hashedVersion],
+                replacements: [teacherName, teacherEmail, teacherPhoneNumber,Role.Teacher, teacherExpertise, teacherJoinedDate, teacherSalary, teacherPhoto, data.hashedVersion],
                 transaction: transaction
             })
 
@@ -61,8 +61,9 @@ class TeacherController {
             await transaction.commit();
             console.log("unmanaged transcation has been done")
 
-            res.status(200).json({
-                message: "teacher created"
+            res.status(201).json({
+                message: "teacher created",
+                data:teacherData
             })
         } catch (error) {
             console.log("unmanaged transcation has been rolledback due to error", error)

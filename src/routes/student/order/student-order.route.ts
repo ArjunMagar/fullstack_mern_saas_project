@@ -17,5 +17,8 @@ router.route("/order").post(isAuthenticated.isAuthenticated,isAuthenticated.
 router.route("/order/khalti/verify-transaction").post(isAuthenticated.isAuthenticated,isAuthenticated.
     restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCoursePaymentVerification))
 
+router.route("/order/esewa/verify-transaction").post(isAuthenticated.isAuthenticated,isAuthenticated.
+    restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCourseEsewaPaymentVerification))
+
 
 export default router;

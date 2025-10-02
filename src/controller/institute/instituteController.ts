@@ -99,6 +99,7 @@ class InstituteController {
            teacherName VARCHAR(255) NOT NULL,
            teacherEmail VARCHAR(255) NOT NULL UNIQUE,
            teacherPhoneNumber VARCHAR(255) NOT NULL UNIQUE,
+           role VARCHAR(20) CHECK (role = 'teacher'),
            teacherExpertise VARCHAR(255),
            joinedDate DATE,
            salary VARCHAR(100),
@@ -184,9 +185,9 @@ class InstituteController {
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         
-        )`,{
-          transaction:transaction
-        })
+        )`, {
+        transaction: transaction
+      })
 
       // Insert data in userInstituteTable for History tracking 
       await sequelize.query(`INSERT INTO userInstitutes(userId,instituteNumber)VALUES(?,?)`, {
