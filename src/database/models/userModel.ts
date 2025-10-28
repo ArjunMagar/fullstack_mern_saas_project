@@ -35,9 +35,9 @@ class User extends Model {
     declare email:string
     
     @Column({
-        type:DataType.ENUM('teacher','institute','super-admin','student'),
+        type:DataType.ENUM('teacher','institute','super-admin','student','visitor'),
         allowNull: false,
-        defaultValue:'student'
+        defaultValue:'visitor'
     })
     declare role:string
    

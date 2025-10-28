@@ -45,6 +45,32 @@ class StudentInstitute {
         }
 
     }
+    
+    async instituteCourseDetailForStudent(req: Request, res: Response) {
+
+        const { instituteId, courseId } = req.params
+
+        console.log(instituteId,courseId,"couseId........")
+        const [datas] = await sequelize.query(`SELECT course.id AS courseId,category.id AS categoryId,course.*,category.*,teacher.teacherName FROM course_${instituteId} as course
+            JOIN category_${instituteId} as category ON course.categoryId = category.id
+            LEFT JOIN teacher_${instituteId} as teacher ON course.teacherId = teacher.id WHERE course.id=?`,
+            {
+                type: QueryTypes.SELECT,
+                replacements:[courseId]
+            })
+        if (!datas) {
+            res.status(404).json({
+                message: "No courseDetail found of that Course"
+            })
+        } else {
+            res.status(200).json({
+                message: "CourseDetail fetched",
+                data: [{instituteId,...datas}]
+            })
+        }
+
+    }
+
 
 }
 

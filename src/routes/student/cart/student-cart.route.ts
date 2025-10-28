@@ -9,7 +9,9 @@ import { Role } from '../../../middleware/type'
 const router:Router = express.Router()
 
 
-router.route('/cart').post(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.insertIntoCartTableOfStudent))
-.get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.fetchStudentCartItems))
-router.route('/cart/:id').delete(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.deleteStudentCartItem))
+router.route('/cart').post(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.insertIntoCartTableOfStudent))
+.get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.fetchStudentCartItems))
+.delete(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.deleteStudentCartItems))
+router.route('/cart/:id').delete(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCartController.deleteStudentCartItem))
+
 export default router

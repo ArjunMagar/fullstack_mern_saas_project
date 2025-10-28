@@ -8,4 +8,5 @@ const router:Router = express.Router()
 
 router.route('/institute').get(asyncErrorHandler(studentInstituteController.instituteListForStudent))
 router.route('/institute/:instituteId/courses').get(asyncErrorHandler(studentInstituteController.instituteCourseListForStudent))
+router.route('/institute/:instituteId/courses/:courseId').get(asyncErrorHandler(studentInstituteController.instituteCourseDetailForStudent))
 export default router

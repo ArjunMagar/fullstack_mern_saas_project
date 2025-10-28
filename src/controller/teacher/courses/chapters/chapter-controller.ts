@@ -38,13 +38,18 @@ class CourseChapter {
         }
 
         // add chapter data to chapter table
-        const data = await sequelize.query(`INSERT INTO course_chapter_${instituteNumber}(chapterName,chapterDuration,chapterLevel,courseId) VALUES(?,?,?,?)`, {
+        await sequelize.query(`INSERT INTO course_chapter_${instituteNumber}(chapterName,chapterDuration,chapterLevel,courseId) VALUES(?,?,?,?)`, {
             replacements: [chapterName, chapterDuration, chapterLevel, courseId],
             type: QueryTypes.INSERT
         })
+        const [data] = await sequelize.query(`SELECT * FROM course_chapter_${instituteNumber} WHERE chapterName=? AND courseId=?`, {
+            replacements: [chapterName, courseId],
+            type: QueryTypes.SELECT
+        })
 
-        res.status(200).json({
-            message: "Chapter added successfully"
+        res.status(201).json({
+            message: "Chapter added successfully",
+            data
         })
     }
 

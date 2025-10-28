@@ -14,6 +14,9 @@ import lessonRoute from "./routes/teacher/course/lessons/chapter-lesson-route"
 import studentInstituteRoute from "./routes/student/institute/student-institute.route"
 import studentCartRoute from "./routes/student/cart/student-cart.route"
 import studentCourseOrderRoute from "./routes/student/order/student-order.route"
+import studentCourseRoute from "./routes/student/course/student-course.route"
+import studentChapterRoute from "./routes/student/course/chapters/student-course-chapter.route"
+import studentLessonRoute from "./routes/student/course/lessons/student-chapter-lesson.route"
 import cors from 'cors'
 const app = express()
 app.use(cors({
@@ -45,6 +48,8 @@ app.use("/api/teacher/course",lessonRoute)
 app.use("/api/student",studentInstituteRoute)
 app.use("/api/student",studentCartRoute)
 app.use("/api/student",studentCourseOrderRoute)
-
+app.use("/api/student/course",studentCourseRoute)
+app.use("/api/student/course",studentChapterRoute)
+app.use("/api/student/course",studentLessonRoute)
 
 export default app

@@ -12,13 +12,13 @@ import studentOrderController from '../../../controller/student/order/student-or
 const router:Router = express.Router()
 
 router.route("/order").post(isAuthenticated.isAuthenticated,isAuthenticated.
-    restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.createStudentCourseOrder))
+    restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.createStudentCourseOrder))
 
 router.route("/order/khalti/verify-transaction").post(isAuthenticated.isAuthenticated,isAuthenticated.
-    restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCoursePaymentVerification))
+    restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCoursePaymentVerification))
 
 router.route("/order/esewa/verify-transaction").post(isAuthenticated.isAuthenticated,isAuthenticated.
-    restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCourseEsewaPaymentVerification))
+    restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentOrderController.studentCourseEsewaPaymentVerification))
 
 
 export default router;

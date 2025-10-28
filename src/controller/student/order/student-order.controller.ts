@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { IExtendedRequest } from "../../../middleware/type";
+import { IExtendedRequest, Role } from "../../../middleware/type";
 import sequelize from "../../../database/connection";
 import User from "../../../database/models/userModel";
 import { QueryTypes } from "sequelize";
@@ -7,6 +7,7 @@ import { KhaltiPayment } from "./paymentIntegration";
 import axios from "axios";
 import generateSha256Hash from "../../../services/generateSha256Hash";
 import base64 from "base-64"
+import { v4 as uuidv4 } from 'uuid';
 
 enum PaymenntMethod {
     COD = "cod",
@@ -44,16 +45,18 @@ class StudentCourseOrder {
             email VARCHAR(25) NOT NULL,
             whatsapp_no VARCHAR(26) NOT NULL,
             remarks TEXT,
+            status ENUM('pending','completed','cancelled') DEFAULT 'pending',
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )`)
 
-        //order-details
-        await sequelize.query(`CREATE TABLE IF NOT EXISTS student_order_detail_${userId}(
+        //enrollment-details
+        await sequelize.query(`CREATE TABLE IF NOT EXISTS student_enrollment_${userId}(
             id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
             courseId VARCHAR(36),
             instituteId VARCHAR(36),
             orderId VARCHAR(36),
+            status ENUM('pending','approved','cancelled') DEFAULT 'pending',
             FOREIGN KEY (orderId) REFERENCES student_order_${userId}(id) ON UPDATE CASCADE ON DELETE CASCADE, 
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -72,27 +75,29 @@ class StudentCourseOrder {
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )`)
-        //insert-query for order
-        const data = await sequelize.query(`INSERT INTO student_order_${userId}(whatsapp_no,remarks,email)
-            VALUES(?,?,?)`, {
+        //insert-query for order       
+        const newId = uuidv4()   //Generate UUID for the new record
+        await sequelize.query(`INSERT INTO student_order_${userId}(id,whatsapp_no,remarks,email)
+            VALUES(?,?,?,?)`, {
             type: QueryTypes.INSERT,
-            replacements: [whatsapp_no, remarks, userData?.email]
+            replacements: [newId, whatsapp_no, remarks, userData?.email]
         })
 
         const [result]: {
             id: string
 
-        }[] = await sequelize.query(`SELECT id FROM student_order_${userId} WHERE whatsapp_no=? AND remarks = ?`, {
+        }[] = await sequelize.query(`SELECT id FROM student_order_${userId} WHERE id=?`, {
             type: QueryTypes.SELECT,
-            replacements: [whatsapp_no, remarks]
+            replacements: [newId]
 
         })
-        console.log(data, "Dataaa")
+
+        console.log(newId, "id")
         console.log(result, "Result")
 
-        //insert-query for orderDetails
+        //insert-query for enrollmentDetails
         for (let orderDetail of orderDetailsData) {
-            await sequelize.query(`INSERT INTO student_order_detail_${userId}(courseId,instituteId,orderId)
+            await sequelize.query(`INSERT INTO student_enrollment_${userId}(courseId,instituteId,orderId)
                 VALUES(?,?,?)`, {
                 type: QueryTypes.INSERT,
                 replacements: [orderDetail.courseId, orderDetail.instituteId, result.id]
@@ -109,7 +114,7 @@ class StudentCourseOrder {
                 product_code: process.env.ESEWA_PRODUCT_CODE,
                 total_amount: amount,
                 transaction_uuid: userId + "_" + result.id,
-                success_url: "http://localhost:3000/",
+                success_url: "http://localhost:3000/payment/success/",
                 failure_url: "http://localhost:3000/failure",
                 signed_field_names: "total_amount,transaction_uuid,product_code"
             }
@@ -148,7 +153,7 @@ class StudentCourseOrder {
             //khalti integration function call here
             const response = await KhaltiPayment({
                 amount: amount,
-                return_url: "http://localhost:3000/",
+                return_url: "http://localhost:3000/payment/success/",
                 website_url: "http://localhost:3000/",
                 purchase_order_id: result.id,
                 purchase_order_name: "Order_" + result.id
@@ -191,10 +196,35 @@ class StudentCourseOrder {
         })
         const data = response.data
         if (data.status === VerificationStatus.Completed) {
-            await sequelize.query(`UPDATE student_payment_${userId} SET paymentStatus=?, transaction_uuid=? WHERE pidx=?`, {
+            const result = await sequelize.query(`UPDATE student_payment_${userId} SET paymentStatus=?, transaction_uuid=? WHERE pidx=?`, {
                 type: QueryTypes.UPDATE,
                 replacements: ['paid', data.transaction_id, pidx]
             })
+            if (result[1] === 1) {
+                const [order]: { orderId: string }[] = await sequelize.query(`SELECT orderId FROM student_payment_${userId} WHERE pidx=?`, {
+                    type: QueryTypes.SELECT,
+                    replacements: [pidx]
+                })
+                await sequelize.query(`UPDATE student_order_${userId} SET status=? WHERE id=?`, {
+                    type: QueryTypes.UPDATE,
+                    replacements: ['completed', order.orderId]
+                })
+                await sequelize.query(`UPDATE student_enrollment_${userId} SET status=? WHERE orderId=?`, {
+                    type: QueryTypes.UPDATE,
+                    replacements: ['approved', order.orderId]
+                })
+                const notChangedUserId = req.user?.id?.split("_").join("-")
+                const userData = await User.findByPk(notChangedUserId)
+                if (userData?.role === Role.Visitor) {
+                    await User.update(
+                        { role: Role.Student },
+                        { where: { id: notChangedUserId } }
+
+                    )
+                }
+
+
+            }
             res.status(200).json({
                 message: "Payment verified successfully"
             })
@@ -220,10 +250,35 @@ class StudentCourseOrder {
         const response = await axios.get(`https://rc.esewa.com.np/api/epay/transaction/status/?product_code=EPAYTEST&total_amount=${newresult.total_amount}&transaction_uuid=${newresult.transaction_uuid}`)
         // console.log(response,"ResponseTest")
         if (response.status === 200 && response.data.status === "COMPLETE") {
-            await sequelize.query(`UPDATE student_payment_${userId} SET paymentStatus=? WHERE transaction_uuid=?`, {
+            const result = await sequelize.query(`UPDATE student_payment_${userId} SET paymentStatus=? WHERE transaction_uuid=?`, {
                 type: QueryTypes.UPDATE,
                 replacements: ["paid", newresult.transaction_uuid]
             })
+            if (result[1] === 1) {
+                const [order]: { orderId: string }[] = await sequelize.query(`SELECT orderId FROM student_payment_${userId} WHERE transaction_uuid=?`, {
+                    type: QueryTypes.SELECT,
+                    replacements: [newresult.transaction_uuid]
+                })
+                await sequelize.query(`UPDATE student_order_${userId} SET status=? WHERE id=?`, {
+                    type: QueryTypes.UPDATE,
+                    replacements: ['completed', order.orderId]
+                })
+                await sequelize.query(`UPDATE student_enrollment_${userId} SET status=? WHERE orderId=?`, {
+                    type: QueryTypes.UPDATE,
+                    replacements: ['approved', order.orderId]
+                })
+                const notChangedUserId = req.user?.id?.split("_").join("-")
+                const userData = await User.findByPk(notChangedUserId)
+                if (userData?.role === Role.Visitor) {
+                    await User.update(
+                        { role: Role.Student },
+                        { where: { id: notChangedUserId } }
+
+                    )
+                }
+
+
+            }
             res.status(200).json({
                 message: "Payment verified successfully"
             })
