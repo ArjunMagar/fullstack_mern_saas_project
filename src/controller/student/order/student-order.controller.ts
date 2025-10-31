@@ -53,10 +53,12 @@ class StudentCourseOrder {
         //enrollment-details
         await sequelize.query(`CREATE TABLE IF NOT EXISTS student_enrollment_${userId}(
             id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+            userId CHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
             courseId VARCHAR(36),
             instituteId VARCHAR(36),
             orderId VARCHAR(36),
             status ENUM('pending','approved','cancelled') DEFAULT 'pending',
+            FOREIGN KEY (userId) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
             FOREIGN KEY (orderId) REFERENCES student_order_${userId}(id) ON UPDATE CASCADE ON DELETE CASCADE, 
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -97,10 +99,10 @@ class StudentCourseOrder {
 
         //insert-query for enrollmentDetails
         for (let orderDetail of orderDetailsData) {
-            await sequelize.query(`INSERT INTO student_enrollment_${userId}(courseId,instituteId,orderId)
-                VALUES(?,?,?)`, {
+            await sequelize.query(`INSERT INTO student_enrollment_${userId}(userId,courseId,instituteId,orderId)
+                VALUES(?,?,?,?)`, {
                 type: QueryTypes.INSERT,
-                replacements: [orderDetail.courseId, orderDetail.instituteId, result.id]
+                replacements: [notChangedUserId,orderDetail.courseId, orderDetail.instituteId, result.id]
             })
         }
 

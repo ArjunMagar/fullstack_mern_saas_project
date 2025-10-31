@@ -2,7 +2,6 @@ import express,{Router} from 'express'
 import asyncErrorHandler from '../../../../services/asyncErrorHandler'
 import isAuthenticated from '../../../../middleware/isAuthenticated'
 import { Role } from '../../../../middleware/type'
-import studentChapterController from '../../../../controller/student/courses/chapters/student-chapter.controller'
 import studentLessonController from '../../../../controller/student/courses/lessons/student-lesson.controller'
 
 

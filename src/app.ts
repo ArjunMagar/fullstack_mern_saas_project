@@ -11,6 +11,7 @@ import teacherRoute from "./routes/teacher/teacherRoute"
 import teacherCourseRoute from "./routes/teacher/course/teacher-course-route"
 import chapterRoute from "./routes/teacher/course/chapters/course-chapter-route"
 import lessonRoute from "./routes/teacher/course/lessons/chapter-lesson-route"
+import studentRoute from "./routes/teacher/student/teacher-student-route"
 import studentInstituteRoute from "./routes/student/institute/student-institute.route"
 import studentCartRoute from "./routes/student/cart/student-cart.route"
 import studentCourseOrderRoute from "./routes/student/order/student-order.route"
@@ -43,6 +44,7 @@ app.use("/api/teacher",teacherRoute)
 app.use("/api/teacher/course",teacherCourseRoute)
 app.use("/api/teacher/course",chapterRoute)
 app.use("/api/teacher/course",lessonRoute)
+app.use("/api/teacher/student",studentRoute)
 
 //STUDENT ROUTE
 app.use("/api/student",studentInstituteRoute)
