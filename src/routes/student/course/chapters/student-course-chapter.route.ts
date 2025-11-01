@@ -9,7 +9,7 @@ const router:Router = express.Router()
 
 
 router.route('/:courseId/chapters/')
-.get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentChapterController.fetchCourseChapters))
+.get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentChapterController.fetchCourseChapters))
 
 
 export default router

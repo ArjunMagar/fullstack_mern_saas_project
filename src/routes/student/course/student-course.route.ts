@@ -9,7 +9,7 @@ import studentCourseController from '../../../controller/student/courses/student
 const router:Router = express.Router()
 
 
-router.route('/').get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student,Role.Visitor),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCourseController.getCourses))
+router.route('/').get(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Student),isAuthenticated.changeUserIdForTableName,asyncErrorHandler(studentCourseController.getCourses))
 
 
 export default router
