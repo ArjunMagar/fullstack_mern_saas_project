@@ -96,6 +96,35 @@ class CourseController {
         })
     }
 
+    async updateCourse(req: IExtendedRequest, res: Response) {
+        const instituteNumber = req.user?.currentInstituteNumber
+        const id = req.params.id
+        const { courseName, coursePrice, courseDescription, courseDuration, courseLevel, categoryId,courseImageUrl} = req.body
+        const courseThumbnail = req.file ? req.file.path : courseImageUrl
+        const result = await sequelize.query(`UPDATE course_${instituteNumber}
+             SET courseName=?,coursePrice=?,courseDescription=?,courseDuration=?,courseLevel=?,courseThumbnail=?,categoryId=? WHERE id=?`,
+            {
+                type: QueryTypes.UPDATE,
+                replacements: [courseName, coursePrice, courseDescription, courseDuration, courseLevel, courseThumbnail, categoryId, id]
+            })
+        console.log(result[1],"Result")
+        if (result[1] === 1) {
+            const [course] = await sequelize.query(`SELECT * FROM course_${instituteNumber} WHERE id=?`, {
+                type: QueryTypes.SELECT,
+                replacements: [id]
+            })
+            return res.status(200).json({
+                message: "course updated successfully",
+                data: course
+            })
+        }
+        return res.status(404).json({
+            message: "course update fails!"
+        })
+
+
+    }
+
 }
 
 export default new CourseController

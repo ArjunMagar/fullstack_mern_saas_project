@@ -14,5 +14,6 @@ router.route('/').post(isAuthenticated.isAuthenticated, isAuthenticated.restrict
     .get(isAuthenticated.isAuthenticated,asyncErrorHandler(courseController.getCourses))
 router.route('/:id').get(isAuthenticated.isAuthenticated,asyncErrorHandler(courseController.getCourse))
     .delete(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(courseController.deleteCourse))
+    .patch(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),upload.single('courseImage'),asyncErrorHandler(courseController.updateCourse))
 
 export default router
