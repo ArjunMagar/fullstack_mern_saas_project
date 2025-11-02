@@ -52,6 +52,34 @@ class CategoryController {
         })
     }
 
+    async updateCategory(req: IExtendedRequest, res: Response) {
+        const instituteNumber = req.user?.currentInstituteNumber
+        const id = req.params.id
+        const { categoryName, categoryDescription } = req.body
+        const result = await sequelize.query(`UPDATE category_${instituteNumber} SET categoryName=?, categoryDescription=?  WHERE id=?`, {
+            type: QueryTypes.UPDATE,
+            replacements: [categoryName, categoryDescription, id]
+        })
+        // console.log(result[1],"Result")
+        if (result[1] === 1) {
+            const [category] = await sequelize.query(`SELECT * FROM category_${instituteNumber} WHERE id=?`, {
+                type: QueryTypes.SELECT,
+                replacements: [id]
+            })
+            return res.status(200).json({
+                message: "category updated successfully",
+                data: category
+            })
+        }
+        return res.status(404).json({
+            message: "category update fails!"
+        })
+
+
+    }
+
+
+
 }
 
 export default new CategoryController

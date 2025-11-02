@@ -6,9 +6,10 @@ import { Role } from '../../../middleware/type'
 
 const router: Router = express.Router()
 
-router.route('/').post(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(categoryController.createCategory))
-    .get(isAuthenticated.isAuthenticated,asyncErrorHandler(categoryController.getCategories))
+router.route('/').post(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(categoryController.createCategory))
+    .get(isAuthenticated.isAuthenticated, asyncErrorHandler(categoryController.getCategories))
 
-router.route('/:id').delete(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),asyncErrorHandler(categoryController.deleteCategory))
+router.route('/:id').delete(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(categoryController.deleteCategory))
+    .patch(isAuthenticated.isAuthenticated, isAuthenticated.restrictTo(Role.Institute), asyncErrorHandler(categoryController.updateCategory))
 
 export default router
