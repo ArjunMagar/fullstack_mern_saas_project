@@ -99,7 +99,7 @@ class CourseController {
     async updateCourse(req: IExtendedRequest, res: Response) {
         const instituteNumber = req.user?.currentInstituteNumber
         const id = req.params.id
-        const { courseName, coursePrice, courseDescription, courseDuration, courseLevel, categoryId,courseImageUrl} = req.body
+        const { courseName, coursePrice, courseDescription, courseDuration, courseLevel, categoryId, courseImageUrl } = req.body
         const courseThumbnail = req.file ? req.file.path : courseImageUrl
         const result = await sequelize.query(`UPDATE course_${instituteNumber}
              SET courseName=?,coursePrice=?,courseDescription=?,courseDuration=?,courseLevel=?,courseThumbnail=?,categoryId=? WHERE id=?`,
@@ -107,12 +107,14 @@ class CourseController {
                 type: QueryTypes.UPDATE,
                 replacements: [courseName, coursePrice, courseDescription, courseDuration, courseLevel, courseThumbnail, categoryId, id]
             })
-        console.log(result[1],"Result")
+        console.log(result[1], "Result")
         if (result[1] === 1) {
-            const [course] = await sequelize.query(`SELECT * FROM course_${instituteNumber} WHERE id=?`, {
-                type: QueryTypes.SELECT,
-                replacements: [id]
-            })
+            const [course] = await sequelize.query(`SELECT course.id as courseId,category.id as categoryId,course.*,category.* FROM
+             course_${instituteNumber} as course JOIN category_${instituteNumber} as category ON course.categoryId = category.id WHERE course.id = ?`,
+                {
+                    replacements: [id],
+                    type: QueryTypes.SELECT
+                })
             return res.status(200).json({
                 message: "course updated successfully",
                 data: course
