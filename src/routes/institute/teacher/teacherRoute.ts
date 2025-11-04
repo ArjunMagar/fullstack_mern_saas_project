@@ -10,4 +10,5 @@ const router:Router = express.Router()
 router.route('/').post(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),upload.single('teacherPhoto'),asyncErrorHandler(teacherController.createTeacher))
 .get(isAuthenticated.isAuthenticated,asyncErrorHandler(teacherController.getTeachers))
 router.route('/:id').delete(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),asyncErrorHandler(teacherController.deleteTeacher))
+.patch(isAuthenticated.isAuthenticated,isAuthenticated.restrictTo(Role.Institute),upload.single('teacherPhoto'),asyncErrorHandler(teacherController.updateTeacher))
 export default router

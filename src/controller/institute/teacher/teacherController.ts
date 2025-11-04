@@ -26,7 +26,7 @@ class TeacherController {
             await sequelize.query(`INSERT INTO teacher_${instituteNumber}(teacherName,teacherEmail,teacherPhoneNumber,role,
             teacherExpertise,joinedDate,salary,teacherPhoto,teacherPassword) VALUES(?,?,?,?,?,?,?,?,?)`, {
                 type: QueryTypes.INSERT,
-                replacements: [teacherName, teacherEmail, teacherPhoneNumber,Role.Teacher, teacherExpertise, teacherJoinedDate, teacherSalary, teacherPhoto, data.hashedVersion],
+                replacements: [teacherName, teacherEmail, teacherPhoneNumber, Role.Teacher, teacherExpertise, teacherJoinedDate, teacherSalary, teacherPhoto, data.hashedVersion],
                 transaction: transaction
             })
 
@@ -63,7 +63,7 @@ class TeacherController {
 
             res.status(201).json({
                 message: "teacher created",
-                data:teacherData
+                data: teacherData
             })
         } catch (error) {
             console.log("unmanaged transcation has been rolledback due to error", error)
@@ -97,6 +97,44 @@ class TeacherController {
         res.status(200).json({
             message: "teacher deleted successfully"
         })
+    }
+
+    async updateTeacher(req: IExtendedRequest, res: Response) {
+        const instituteNumber = req.user?.currentInstituteNumber
+        const id = req.params.id
+        const { teacherName, teacherEmail, teacherPhoneNumber, teacherExpertise, teacherSalary, teacherJoinedDate, courseId, teacherPhotoUrl } = req.body
+        const teacherPhoto = req.file ? req.file.path : teacherPhotoUrl
+        const teacherUpdate = await sequelize.query(`UPDATE teacher_${instituteNumber} SET teacherName=?,teacherEmail=?,teacherPhoneNumber=?,
+            teacherExpertise=?,joinedDate=?,salary=?,teacherPhoto=? WHERE id=?`,
+            {
+                type: QueryTypes.UPDATE,
+                replacements: [teacherName, teacherEmail, teacherPhoneNumber, teacherExpertise, teacherJoinedDate, teacherSalary, teacherPhoto, id]
+            })
+        // console.log(teacherUpdate[1], "teacherUpdate")
+
+        const courseTeacherUpdate = await sequelize.query(`UPDATE course_${instituteNumber} SET teacherId=? WHERE id=?`, {
+            type: QueryTypes.UPDATE,
+            replacements: [id, courseId],
+
+        })
+        // console.log(courseTeacherUpdate[1], "courseTeacherUpdate")
+        if (teacherUpdate[1] === 1 || courseTeacherUpdate[1] === 1) {
+            const teacherData = await sequelize.query(`SELECT * FROM teacher_${instituteNumber} WHERE id=?`, {
+                type: QueryTypes.SELECT,
+                replacements: [id],
+
+            })
+
+            return res.status(200).json({
+                message: "teacher updated successfully",
+                data: teacherData
+            })
+        }
+        return res.status(404).json({
+            message: "teacher update fails!"
+        })
+
+
     }
 }
 
